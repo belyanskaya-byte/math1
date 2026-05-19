@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Stone: Kingdom of Science Recruitment</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Kelly+Slab&family=Ruslan+Display&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            /* Фоновое изображение. Затемнение настроено через linear-gradient */
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
+                        url('drstone.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #e0e0e0;
+            font-family: 'Kelly Slab', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-family: 'Ruslan Display', cursive;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: #ffffff;
+            text-shadow: 0 0 15px #2ecc71, 0 0 30px #2ecc71;
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #2ecc71;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            margin-bottom: 40px;
+        }
+
+        button {
+            font-family: 'Ruslan Display', cursive;
+            background: #2ecc71;
+            color: #000;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px #2ecc71;
+            background: #fff;
+        }
+
+        button:disabled {
+            display: none; /* Скрываем кнопку после активации */
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 300px;
+            border: 3px solid #333;
+            border-radius: 15px;
+            background: rgba(10, 15, 10, 0.9);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .column h2 {
+            font-family: 'Ruslan Display', cursive;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #444;
+        }
+
+        /* Индивидуальные цвета для отделов */
+        .chemistry { border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
+        .engineering { border-color: #ff8800; box-shadow: 0 0 15px rgba(255, 136, 0, 0.2); }
+        .finance { border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .name-tag {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 1.3rem;
+            text-align: center;
+            border-left: 5px solid transparent;
+            
+            /* Начальное состояние для анимации */
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .name-tag.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Цвет полоски у карточки в зависимости от отдела */
+        .chemistry .name-tag { border-left-color: #00ff88; }
+        .engineering .name-tag { border-left-color: #ff8800; }
+        .finance .name-tag { border-left-color: #ffd700; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Царство Науки</h1>
+    <div class="subtitle">Протокол распределения ресурсов v1.0</div>
+
+    <div class="controls">
+        <button id="startBtn" onclick="startSorting()">Активировать распределение</button>
+    </div>
+
+    <audio id="bgMusic" src="music.mp3" loop></audio>
+    <audio id="popSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
+    <div class="container">
+        <div class="column chemistry" id="chem">
+            <h2 style="color: #00ff88;">🧪 ОТДЕЛ ХИМИИ</h2>
+            <div class="list"></div>
+        </div>
+        <div class="column engineering" id="eng">
+            <h2 style="color: #ff8800;">⚙️ ИНЖЕНЕРИЯ</h2>
+            <div class="list"></div>
+        </div>
+        <div class="column finance" id="fin">
+            <h2 style="color: #ffd700;">💰 ФИНАНСЫ</h2>
+            <div class="list"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- СПИСОК УЧЕНИКОВ ---
+        const students = [
+            "Иван Петров", "Анна Сидорова", "Максим Умнов", 
+            "Дарья Колбова", "Сергей Железный", "Елена Монеткина",
+            "Артем Сэнку", "Ольга Чертеж", "Дмитрий Расчет",
+            "Виктория Золото", "Кирилл Шестеренка", "Никита Формула"
+        ];
+
+        const sound = document.getElementById('popSound');
+        const bgMusic = document.getElementById('bgMusic');
+
+        async function startSorting() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true; // Скрываем кнопку
+            
+            // Настройка громкости (0.5 = 50%)
+            bgMusic.volume = 0.5; 
+            bgMusic.play().catch(e => console.log("Музыка заблокирована браузером, нужен клик"));
+
+            const lists = {
+                0: document.querySelector('#chem .list'),
+                1: document.querySelector('#eng .list'),
+                2: document.querySelector('#fin .list')
+            };
+
+            // Очистка и перемешивание
+            Object.values(lists).forEach(l => l.innerHTML = "");
+            let shuffled = [...students].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < shuffled.length; i++) {
+                // Задержка между появлением имен (800мс = 0.8 сек)
+                await new Promise(r => setTimeout(r, 800));
+                
+                // Звук эффекта (чуть громче фона)
+                sound.volume = 0.2;
+                sound.currentTime = 0;
+                sound.play();
+
+                const name = shuffled[i];
+                const div = document.createElement('div');
+                div.className = 'name-tag';
+                div.innerText = name;
+
+                // Распределяем циклично по 3 колонкам
+                lists[i % 3].appendChild(div);
+                
+                // Небольшая задержка перед добавлением класса анимации
+                setTimeout(() => div.classList.add('visible'), 50);
+            }
+        }
+    </script>
+</body>
+</html>
